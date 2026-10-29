@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+<meta name="theme-color" content="#faf7f2">
+<meta name="description" content="Pisak – edytor do pisania w podróży">
+<title>Pisak</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <section id="home" class="view" hidden>
+    <header class="bar">
+      <h1>Pisak</h1>
+      <button class="icon" id="home-menu" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>
+      </button>
+    </header>
+    <main class="list" id="project-list"></main>
+    <button class="fab" id="new-project">+ Nowy projekt</button>
+  </section>
+
+  <section id="project" class="view" hidden>
+    <header class="bar">
+      <button class="icon" data-back aria-label="Wstecz">
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="title" id="project-title"></div>
+      <button class="icon" id="project-menu" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>
+      </button>
+    </header>
+    <main class="list" id="doc-list"></main>
+    <button class="fab" id="new-doc">+ Nowy dokument</button>
+  </section>
+
+  <section id="editor-view" class="view" hidden>
+    <header class="bar">
+      <button class="icon" data-back aria-label="Wstecz">
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button class="title" id="doc-title"></button>
+      <span class="status" id="status"></span>
+      <button class="icon" id="doc-menu" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>
+      </button>
+    </header>
+    <div id="editor"></div>
+    <nav id="toolbar">
+      <button class="tool" data-cmd="undo" aria-label="Cofnij">
+        <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      </button>
+      <button class="tool" data-cmd="redo" aria-label="Ponów">
+        <svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+      </button>
+      <button class="tool i" data-cmd="italic" id="t-italic" aria-label="Kursywa" aria-pressed="false">I</button>
+      <button class="tool" data-cmd="center" id="t-center" aria-label="Wyśrodkuj" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M5 18h14"/></svg>
+      </button>
+      <button class="tool" data-cmd="dash" aria-label="Półpauza">–</button>
+      <button class="tool sep" data-cmd="separator" aria-label="Separator sceny">***</button>
+    </nav>
+  </section>
+
+</div>
+
+<div id="scrim" hidden></div>
+<div id="menu" role="menu" hidden></div>
+<input type="file" id="import-file" accept="application/json,.json" hidden>
+
+<script src="export.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

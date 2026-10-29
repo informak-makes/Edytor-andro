@@ -480,10 +480,52 @@ async function flushSave() {
   }
 }
 
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') flushSave();
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'hidden') {
+    await flushSave();
+    if (reloadPending) location.reload();
+  } else {
+    swRegistration?.update();
+  }
 });
 addEventListener('pagehide', flushSave);
+
+// ---------- Aktualizacje ----------
+
+// Musi się zgadzać z VERSION w sw.js.
+const APP_VERSION = 4;
+const startedAt = Date.now();
+let swRegistration = null;
+let reloadPending = false;
+let reloadNow = false;
+
+// Nowa wersja przejęła apkę: przeładowujemy od razu, jeśli apka dopiero wystartowała
+// albo ktoś ręcznie poprosił o aktualizację; w trakcie pisania – dopiero gdy wyjdziesz z apki.
+async function onNewVersion() {
+  await flushSave();
+  if (reloadNow || Date.now() - startedAt < 10000 || document.visibilityState === 'hidden') location.reload();
+  else reloadPending = true;
+}
+
+async function checkForUpdate() {
+  if (!swRegistration) { alert('Aktualizacje nie są dostępne w tej przeglądarce.'); return; }
+  const btn = $('#check-update');
+  btn.disabled = true;
+  btn.textContent = 'Sprawdzam…';
+  try {
+    await swRegistration.update();
+  } catch {
+    alert('Nie udało się sprawdzić – brak internetu?');
+  }
+  if (swRegistration.installing || swRegistration.waiting) {
+    reloadNow = true;
+    btn.textContent = 'Pobieram nową wersję…';
+    return;
+  }
+  btn.disabled = false;
+  btn.textContent = 'Sprawdź aktualizacje';
+  if (navigator.onLine) alert('Masz najnowszą wersję.');
+}
 
 // ---------- Akcje dokumentu ----------
 
@@ -637,6 +679,8 @@ async function init() {
   $('#backup-download').onclick = downloadBackup;
   $('#backup-import').onclick = () => $('#import-file').click();
   $('#clear-cache').onclick = clearCache;
+  $('#check-update').onclick = checkForUpdate;
+  $('#app-version').textContent = `Pisak, wersja ${APP_VERSION}`;
   $('#project-menu').onclick = e => openMenu(e.currentTarget, [
     ['Zmień nazwę projektu', renameProject],
     themeItem(),
@@ -682,7 +726,15 @@ async function init() {
   route();
 
   navigator.storage?.persist?.();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  if ('serviceWorker' in navigator) {
+    // Pierwsza instalacja też zmienia kontrolera – wtedy nie przeładowujemy.
+    let hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (hadController) onNewVersion();
+      hadController = true;
+    });
+    swRegistration = await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' });
+  }
 }
 
 init();

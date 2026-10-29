@@ -6,7 +6,7 @@ Edytor do pisania prozy na telefonie, w podróży. Działa jako aplikacja webowa
 
 - Automatycznie zamienia `"` na polskie cudzysłowy „ i ”, a `...` na wielokropek …
   (przycisk „Cofnij” tuż po zamianie przywraca to, co zostało wpisane).
-- Pasek nad klawiaturą: cofnij, ponów, kursywa, wyśrodkowanie akapitu, półpauza –, separator sceny `* * *`.
+- Pasek nad klawiaturą: cofnij, ponów, kursywa, wyśrodkowanie akapitu, półpauza –, separator sceny `***`.
 - Projekty z wieloma dokumentami, autozapis w pamięci telefonu.
 - Eksport dokumentu do `.docx` (z kursywą i wyśrodkowaniem) i `.txt`.
 - Kopia zapasowa całej biblioteki (wysyłana np. na Dysk Google albo pobierana do telefonu) i jej wczytywanie.

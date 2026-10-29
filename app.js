@@ -406,7 +406,7 @@ const tools = {
   separator: insertSeparator,
 };
 
-// Wstawia wyśrodkowany akapit „* * *” i ustawia kursor w nowym, zwykłym akapicie pod nim.
+// Wstawia wyśrodkowany akapit „***” i ustawia kursor w nowym, zwykłym akapicie pod nim.
 function insertSeparator() {
   const sel = getSelection();
   const block = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement).closest('#editor > *');
@@ -419,7 +419,7 @@ function insertSeparator() {
     exec('insertParagraph');
   }
   if (document.queryCommandState('italic')) exec('italic');
-  exec('insertText', '* * *');
+  exec('insertText', '***');
   if (!document.queryCommandState('justifyCenter')) exec('justifyCenter');
   exec('insertParagraph');
   if (document.queryCommandState('justifyCenter')) exec('justifyLeft');

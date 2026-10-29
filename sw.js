@@ -1,6 +1,6 @@
 // Pisak działa offline: pliki aplikacji są trzymane w pamięci podręcznej,
 // a w tle pobierana jest nowsza wersja (widoczna po kolejnym uruchomieniu).
-const CACHE = 'pisak-v1';
+const CACHE = 'pisak-v2';
 const FILES = [
   './',
   'index.html',

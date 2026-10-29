@@ -65,11 +65,12 @@ function ask(label, value) {
   return v && v.trim() ? v.trim() : null;
 }
 
-function plural(n) {
+function plural(n, forms = ['dokument', 'dokumenty', 'dokumentów']) {
   const a = n % 10, b = n % 100;
-  const word = n === 1 ? 'dokument' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'dokumenty' : 'dokumentów';
+  const word = n === 1 ? forms[0] : a >= 2 && a <= 4 && (b < 12 || b > 14) ? forms[1] : forms[2];
   return `${n} ${word}`;
 }
+const PROJECTS = ['projekt', 'projekty', 'projektów'];
 
 const fmtDate = t => new Date(t).toLocaleString('pl-PL', {
   day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
@@ -136,6 +137,7 @@ async function route() {
   let m;
   if ((m = h.match(/^#\/d\/(.+)$/))) return openDoc(m[1], seq);
   if ((m = h.match(/^#\/p\/(.+)$/))) return openProject(m[1], seq);
+  if (h === '#/pamiec') return openStorage(seq);
   return openHome(seq);
 }
 
@@ -513,7 +515,8 @@ async function exportDoc(kind) {
 
 // ---------- Kopia zapasowa ----------
 
-async function exportBackup() {
+// Kopia ma rozszerzenie .txt, bo Chrome na Androidzie nie pozwala udostępniać plików .json.
+async function backupFile() {
   await flushSave();
   const data = {
     app: 'pisak',
@@ -523,7 +526,23 @@ async function exportBackup() {
     docs: await dbAll('docs'),
   };
   const stamp = new Date().toISOString().slice(0, 10);
-  download(`pisak-kopia-${stamp}.json`, new Blob([JSON.stringify(data)], { type: 'application/json' }));
+  return new File([JSON.stringify(data)], `pisak-kopia-${stamp}.txt`, { type: 'text/plain' });
+}
+
+const canShareFiles = () => !!navigator.canShare?.({ files: [new File([''], 'x.txt', { type: 'text/plain' })] });
+
+async function shareBackup() {
+  const file = await backupFile();
+  try {
+    await navigator.share({ files: [file], title: 'Kopia zapasowa Pisaka' });
+  } catch (err) {
+    if (err.name !== 'AbortError') alert('Nie udało się udostępnić kopii. Spróbuj „Pobierz kopię do telefonu”.');
+  }
+}
+
+async function downloadBackup() {
+  const file = await backupFile();
+  download(file.name, file);
 }
 
 async function importBackup(file) {
@@ -534,11 +553,54 @@ async function importBackup(file) {
     return;
   }
   const when = data.exported ? new Date(data.exported).toLocaleString('pl-PL') : 'nieznana data';
-  if (!confirm(`Wczytać kopię z ${when}?\n\n${data.projects.length} projektów, ${plural(data.docs.length)}.\nTe same projekty i dokumenty zostaną zastąpione wersją z kopii, pozostałe zostaną bez zmian.`)) return;
+  if (!confirm(`Wczytać kopię z ${when}?\n\n${plural(data.projects.length, PROJECTS)}, ${plural(data.docs.length)}.\nTe same projekty i dokumenty zostaną zastąpione wersją z kopii, pozostałe zostaną bez zmian.`)) return;
   for (const p of data.projects) await dbPut('projects', p);
   for (const d of data.docs) await dbPut('docs', d);
   alert('Kopia wczytana.');
   route();
+}
+
+// ---------- Pamięć i porządki ----------
+
+function formatSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1).replace('.', ',')} MB`;
+}
+
+async function cacheSize() {
+  if (!('caches' in window)) return 0;
+  let total = 0;
+  for (const key of await caches.keys()) {
+    const cache = await caches.open(key);
+    for (const r of await cache.keys()) {
+      const res = await cache.match(r);
+      if (res) total += (await res.clone().blob()).size;
+    }
+  }
+  return total;
+}
+
+async function openStorage(seq) {
+  if (seq !== routeSeq) return;
+  show('storage');
+  $('#backup-share').hidden = $('#share-hint').hidden = !canShareFiles();
+  await refreshStorage();
+}
+
+async function refreshStorage() {
+  const projects = await dbAll('projects');
+  const docs = await dbAll('docs');
+  const textBytes = new Blob(docs.map(d => d.html + d.name)).size;
+  $('#st-texts').textContent = `${plural(projects.length, PROJECTS)}, ${plural(docs.length)} · ${formatSize(textBytes)}`;
+  $('#st-cache').textContent = formatSize(await cacheSize());
+}
+
+async function clearCache() {
+  if (!navigator.onLine && !confirm('Nie masz teraz internetu. Po wyczyszczeniu apka nie uruchomi się ponownie, dopóki nie połączysz się z siecią. Wyczyścić mimo to?')) return;
+  for (const key of await caches.keys()) await caches.delete(key);
+  await refreshStorage();
+  alert('Pamięć podręczna wyczyszczona. Twoje teksty są nienaruszone.');
 }
 
 // ---------- Dopasowanie do klawiatury ----------
@@ -569,9 +631,12 @@ async function init() {
 
   $('#home-menu').onclick = e => openMenu(e.currentTarget, [
     themeItem(),
-    ['Zapisz kopię zapasową', exportBackup],
-    ['Wczytaj kopię zapasową', () => $('#import-file').click()],
+    ['Pamięć i kopie zapasowe', () => { location.hash = '#/pamiec'; }],
   ]);
+  $('#backup-share').onclick = shareBackup;
+  $('#backup-download').onclick = downloadBackup;
+  $('#backup-import').onclick = () => $('#import-file').click();
+  $('#clear-cache').onclick = clearCache;
   $('#project-menu').onclick = e => openMenu(e.currentTarget, [
     ['Zmień nazwę projektu', renameProject],
     themeItem(),

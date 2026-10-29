@@ -39,6 +39,37 @@
     <button class="fab" id="new-doc">+ Nowy dokument</button>
   </section>
 
+  <section id="storage" class="view" hidden>
+    <header class="bar">
+      <button class="icon" data-back aria-label="Wstecz">
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="title">Pamięć i kopie zapasowe</div>
+    </header>
+    <main class="list">
+      <div class="card">
+        <b>Twoje teksty</b>
+        <span id="st-texts">…</span>
+      </div>
+      <div class="card">
+        <b>Pamięć podręczna</b>
+        <span id="st-cache">…</span>
+        <p class="hint">Pliki samej aplikacji, dzięki którym działa bez internetu. Twoje teksty nie są tu przechowywane.
+          Po wyczyszczeniu apka pobierze je ponownie przy następnym uruchomieniu z internetem.</p>
+        <button class="btn" id="clear-cache">Wyczyść pamięć podręczną</button>
+      </div>
+      <div class="card">
+        <b>Kopia zapasowa</b>
+        <p class="hint" id="share-hint">„Wyślij kopię” otwiera menu udostępniania. Wybierz Dysk Google albo e-mail, a w telefonie nie zostanie żaden plik.</p>
+        <button class="btn primary" id="backup-share">Wyślij kopię…</button>
+        <button class="btn" id="backup-download">Pobierz kopię do telefonu</button>
+        <button class="btn" id="backup-import">Wczytaj kopię</button>
+        <p class="hint">Pobrane kopie i wyeksportowane dokumenty trafiają do folderu <i>Pobrane</i>.
+          Aplikacja nie ma do niego dostępu, więc stare pliki usuwa się w aplikacji <i>Pliki</i> w telefonie.</p>
+      </div>
+    </main>
+  </section>
+
   <section id="editor-view" class="view" hidden>
     <header class="bar">
       <button class="icon" data-back aria-label="Wstecz">
@@ -71,7 +102,7 @@
 
 <div id="scrim" hidden></div>
 <div id="menu" role="menu" hidden></div>
-<input type="file" id="import-file" accept="application/json,.json" hidden>
+<input type="file" id="import-file" accept="application/json,text/plain,.json,.txt" hidden>
 
 <script src="export.js"></script>
 <script src="app.js"></script>
